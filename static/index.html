@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Time Tracker</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center p-4">
+  <div class="max-w-xl w-full">
+    <h1 class="text-3xl font-bold mb-4 text-center">⏱️ Time Tracker</h1>
+
+    <form id="createForm" class="flex mb-6 space-x-2">
+      <input type="text" id="titleInput" placeholder="New task title" required class="flex-grow border rounded px-3 py-2"/>
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Start</button>
+    </form>
+
+    <section class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Active Task</h2>
+      <div id="activeTask" class="space-y-2"></div>
+    </section>
+
+    <section>
+      <div class="bg-gray-50 p-4 rounded-lg shadow mb-6 flex flex-wrap items-center gap-4" id="controls">
+          <div>
+              <label for="filterStatus" class="block text-sm font-medium text-gray-700">Filter Status</label>
+              <select id="filterStatus" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                  <option value="all">All</option>
+                  <option value="paused">Paused</option>
+                  <option value="stopped">Stopped</option>
+              </select>
+          </div>
+          <div>
+              <label for="sortBy" class="block text-sm font-medium text-gray-700">Sort By</label>
+              <select id="sortBy" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                  <option value="start_time">Start Time</option>
+                  <option value="title">Title</option>
+              </select>
+          </div>
+          <div>
+              <label for="orderBy" class="block text-sm font-medium text-gray-700">Order</label>
+              <select id="orderBy" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                  <option value="desc">Descending</option>
+                  <option value="asc">Ascending</option>
+              </select>
+          </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-semibold mb-2">All Tasks</h2>
+      <div id="taskList" class="space-y-2"></div>
+      <div id="paginationControls" class="flex justify-center items-center mt-6"></div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

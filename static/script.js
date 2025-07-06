@@ -55,23 +55,23 @@ async function fetchTasks() {
 
         tasks.forEach(task => {
             const card = document.createElement('div');
-            card.className = `p-4 rounded shadow bg-white border flex flex-col`;
+            card.className = `p-4 rounded-lg shadow bg-white border border-gray-200 flex flex-col space-y-2`;
 
             let status = 'Stopped';
-            let statusColor = 'bg-gray-300 text-gray-800';
+            let statusColor = 'bg-gray-100 text-gray-800';
 
             if (!task.end_time) {
                 if (task.is_paused) {
                     status = 'Paused';
-                    statusColor = 'bg-yellow-300 text-yellow-900';
+                    statusColor = 'bg-yellow-100 text-yellow-900';
                 } else {
                     status = 'Running';
-                    statusColor = 'bg-green-400 text-white';
+                    statusColor = 'bg-green-100 text-green-900';
                 }
             }
             
             card.innerHTML = `
-                <div class="flex justify-between items-center mb-2">
+                <div class="flex justify-between items-center">
                     <span class="font-semibold text-lg">${task.title}</span>
                     <span class="text-xs px-2 py-1 rounded ${statusColor}">${status}</span>
                 </div>
@@ -113,10 +113,11 @@ async function getRunningTask() {
         activeDiv.innerHTML = '<p class="text-gray-500">No active task.</p>';
     } else {
         const card = document.createElement('div');
-        card.className = `p-4 rounded shadow bg-white border flex flex-col`;
+        card.className = `flex flex-col space-y-2`;
         card.innerHTML = `
-            <div class="flex justify-between items-center mb-2">
-                <span class="font-semibold text-lg">${task.title}</span>
+            <div class="flex justify-between items-center">
+                <span class="font-semibold text-lg text-blue-800">${task.title}</span>
+                <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">Running</span>
             </div>
             <div class="text-sm text-gray-600">
                 Started: ${new Date(task.start_time).toLocaleString()}<br>
@@ -134,7 +135,7 @@ async function getRunningTask() {
             </div>
         `;
         activeDiv.appendChild(card);
-    
+
         clearInterval(activeDurationInterval);
         const activeCard = document.querySelector('#activeTask .duration-live');
         if (activeCard) {
@@ -148,7 +149,6 @@ async function getRunningTask() {
             }, 1000);
         }
     }
-
 }
 
 // CRUD handlers
@@ -162,6 +162,7 @@ async function createTask(title) {
         const data = await res.json();
         if (data.error) alert(data.error);
         await fetchTasks();
+        await getRunningTask();
     } catch (err) {
         console.error('Error creating task:', err);
     }
@@ -200,7 +201,7 @@ function renderPaginationControls(pagination) {
 
     controlDiv.innerHTML = "";
 
-    if (!pagination || pagination.totalPages <= 1) {
+    if (!pagination || pagination.totalPages < 1) {
         return
     }
 
@@ -214,7 +215,10 @@ function renderPaginationControls(pagination) {
         prevButton.disabled = true;
         prevButton.className += ` ${btnDisabledClasses}`;
     }
-    prevButton.onclick = () => fetchTasks(currentPage - 1);
+    prevButton.onclick = () => {
+        currentPage = currentPage - 1;
+        fetchTasks();
+    };
 
     const nextButton = document.createElement("button");
     nextButton.innerText = "Next";
@@ -223,7 +227,10 @@ function renderPaginationControls(pagination) {
         nextButton.disabled = true;
         nextButton.className = ` ${btnDisabledClasses}`;
     }
-    nextButton.onclick = () => fetchTasks(currentPage + 1);
+    nextButton.onclick = () => {
+        currentPage = currentPage + 1;
+        fetchTasks();
+    };
 
     const pageInfo = document.createElement("span");
     pageInfo.className = "px-4 py-2 text-sm text-gray-700";
@@ -247,3 +254,4 @@ createForm.addEventListener('submit', async (e) => {
 // Initial fetch and refresh every 10 seconds
 fetchTasks();
 getRunningTask();
+

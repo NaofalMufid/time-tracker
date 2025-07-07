@@ -8,7 +8,7 @@ function formatDuration(seconds) {
 
 let activeDurationInterval;
 let currentPage = 1;
-const pageSize = 4;
+const pageSize = 10;
 let currentStatus = 'all';
 let currentSortBy = 'start_time';
 let currentOrderBy = 'desc';
@@ -30,7 +30,21 @@ document.addEventListener("DOMContentLoaded", () => {
     sortByEl.addEventListener("change", handleControlChange);
     orderByEl.addEventListener("change", handleControlChange);
 
+    // Form handler
+    const createForm = document.getElementById('createForm');
+    createForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const titleInput = document.getElementById('titleInput');
+        const title = titleInput.value.trim();
+        if (title) {
+            await createTask(title);
+            titleInput.value = '';
+        }
+    });
+
+    // Initial fetch
     fetchTasks();
+    getRunningTask();
 });
 
 // Fetch and render tasks
@@ -88,7 +102,7 @@ async function fetchTasks() {
                     }
                         <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" onclick="stopTask(${task.id})">Stop</button>
                     ` : ''}
-                    ${task.is_paused ? `<button class="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500" onclick="deleteTask(${task.id})">Delete</button>` : ``}
+                    ${task.is_paused || task.end_time ? `<button class="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500" onclick="deleteTask(${task.id})">Delete</button>` : ``}
                 </div>
             `;
             listDiv.appendChild(card);
@@ -238,20 +252,4 @@ function renderPaginationControls(pagination) {
 
     controlDiv.append(prevButton, pageInfo, nextButton);
 }
-
-// Form handler
-const createForm = document.getElementById('createForm');
-createForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const titleInput = document.getElementById('titleInput');
-    const title = titleInput.value.trim();
-    if (title) {
-        await createTask(title);
-        titleInput.value = '';
-    }
-});
-
-// Initial fetch and refresh every 10 seconds
-fetchTasks();
-getRunningTask();
 

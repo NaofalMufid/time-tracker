@@ -1,6 +1,8 @@
 package main
 
 import (
+	"embed"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +14,9 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+//go:embed static/*
+var embeddedFiles embed.FS
 
 func initEnv() {
 	err := godotenv.Load()
@@ -38,7 +43,29 @@ func main() {
 	r.HandleFunc("/tasks", handlers.ListTasksHandler()).Methods("GET")
 	r.HandleFunc("/tasks/running", handlers.GetRunningTasksHandler()).Methods("GET")
 
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
+	r.PathPrefix("/static/").Handler(http.FileServer(http.FS(embeddedFiles)))
+
+	// serve the index.html for the root path
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+
+		tmpl, err := template.ParseFS(embeddedFiles, "static/index.html")
+		if err != nil {
+			log.Printf("Error parsing index.html: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		err = tmpl.Execute(w, nil)
+		if err != nil {
+			log.Printf("Error executing index.html: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}).Methods("GET")
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -1,2 +1,3 @@
 node_modules/
+release/
 db/time_tracker.db

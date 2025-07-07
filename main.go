@@ -30,6 +30,8 @@ func main() {
 	db.Init()
 	db.Migrate()
 
+	defer db.DB.Close()
+
 	r := mux.NewRouter()
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})

@@ -1,14 +1,21 @@
 package main
 
 import (
+	"context"
 	"embed"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"os/signal"
+	"runtime"
+	"syscall"
 	"task-time-tracker/db"
 	"task-time-tracker/handlers"
 	"task-time-tracker/utils"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -28,9 +35,9 @@ func initEnv() {
 func main() {
 	initEnv()
 	db.Init()
-	db.Migrate()
-
 	defer db.DB.Close()
+
+	db.Migrate()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -73,6 +80,68 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	log.Println("Server running on http://localhost:" + port)
-	log.Fatal(http.ListenAndServe(":"+port, r))
+	appURL := fmt.Sprintf("http://localhost:%s", port)
+
+	server := &http.Server{
+		Addr:    ":" + port,
+		Handler: r,
+	}
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		log.Printf("Server runnin on %s", appURL)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server failed to start: %v", err)
+		}
+	}()
+
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		if err := openbrowser(appURL); err != nil {
+			log.Printf("Failed to open browser: %v", err)
+		}
+	}()
+
+	<-stop
+
+	log.Println("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server shutdown failed: %v", err)
+	}
+	log.Println("Server gracefully stopped.")
+
+	// log.Println("Server running on http://localhost:" + port)
+	// log.Fatal(http.ListenAndServe(":"+port, r))
+}
+
+func openbrowser(url string) error {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start", url}
+	case "darwin":
+		cmd = "open"
+		args = []string{url}
+	case "linux":
+		cmd = "xdg-open"
+		args = []string{url}
+	default:
+		return fmt.Errorf("platform is not support for opening browser: %s", runtime.GOOS)
+	}
+
+	command := exec.Command(cmd, args...)
+	log.Printf("Tyring open browser with command: %s %v", cmd, args)
+	if err := command.Start(); err != nil {
+		return fmt.Errorf("failed starting browser command")
+	}
+	return nil
 }

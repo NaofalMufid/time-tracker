@@ -35,10 +35,13 @@ document.addEventListener("DOMContentLoaded", () => {
     createForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const titleInput = document.getElementById('titleInput');
+        const detailInput = document.getElementById('detailInput');
         const title = titleInput.value.trim();
+        const detail = detailInput.value.trim();
         if (title) {
-            await createTask(title);
+            await createTask(title, detail);
             titleInput.value = '';
+            detailInput.value = '';
         }
     });
 
@@ -89,6 +92,7 @@ async function fetchTasks() {
                     <span class="font-semibold text-lg">${task.title}</span>
                     <span class="text-xs px-2 py-1 rounded ${statusColor}">${status}</span>
                 </div>
+                ${task.detail ? `<div class="text-sm text-gray-700 mt-1">${task.detail}</div>` : ''}
                 <div class="text-sm text-gray-600">
                     Started: ${new Date(task.start_time).toLocaleString()}<br>
                     ${task.end_time ? `Ended: ${new Date(task.end_time).toLocaleString()}<br>` : ''}
@@ -166,12 +170,12 @@ async function getRunningTask() {
 }
 
 // CRUD handlers
-async function createTask(title) {
+async function createTask(title, detail) {
     try {
         const res = await fetch('/tasks', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title })
+            body: JSON.stringify({ title, detail })
         });
         const data = await res.json();
         if (data.error) alert(data.error);

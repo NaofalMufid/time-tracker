@@ -12,8 +12,9 @@
   <div class="max-w-xl w-full">
     <h1 class="text-3xl font-bold mb-4 text-center">⏱️ Task Time Tracker</h1>
 
-    <form id="createForm" class="flex mb-6 space-x-2">
+    <form id="createForm" class="flex flex-col mb-6 space-y-2">
       <input type="text" id="titleInput" placeholder="New task title" required class="flex-grow border rounded px-3 py-2"/>
+      <textarea id="detailInput" placeholder="Task Detail (optional)" rows="3" class="flex-grow border rounded px-3 py-2"></textarea>
       <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Start</button>
     </form>
 

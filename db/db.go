@@ -12,22 +12,6 @@ import (
 var DB *sql.DB
 
 func Init() {
-	// var err error
-	// dbPath := os.Getenv("DB_PATH")
-	// if dbPath == "" {
-	// 	dbPath = "./time_tracker.db"
-	// }
-
-	// DB, err = sql.Open("sqlite3", dbPath)
-	// if err != nil {
-	// 	log.Fatal("Failed to open database:", err)
-	// }
-
-	// if err := DB.Ping(); err != nil {
-	// 	log.Fatal("Database ping failed:", err)
-	// }
-	// log.Println("Connected to SQLite at", dbPath)
-
 	dataDir, err := os.UserConfigDir()
 	if err != nil {
 		log.Fatalf("Error getting user config directory: %v", err)
@@ -58,6 +42,7 @@ func Migrate() {
 	CREATE TABLE IF NOT EXISTS tasks (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title TEXT NOT NULL,
+		detail TEXT,
 		start_time DATETIME NOT NULL,
 		end_time DATETIME,
 		is_paused BOOLEAN DEFAULT FALSE,

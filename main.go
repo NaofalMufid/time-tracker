@@ -115,9 +115,6 @@ func main() {
 		log.Fatalf("Server shutdown failed: %v", err)
 	}
 	log.Println("Server gracefully stopped.")
-
-	// log.Println("Server running on http://localhost:" + port)
-	// log.Fatal(http.ListenAndServe(":"+port, r))
 }
 
 func openbrowser(url string) error {

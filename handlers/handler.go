@@ -88,7 +88,7 @@ func ListTasksHandler() http.HandlerFunc {
 		}
 
 		dataQuery := fmt.Sprintf(`
-			SELECT id, title, start_time, end_time, is_paused,
+			SELECT id, title, detail, start_time, end_time, is_paused,
 				paused_duration, duration, last_resume_time
 			%s %s %s LIMIT ? OFFSET ?
 		`, baseQuery, whereClause, orderClause)
@@ -107,7 +107,7 @@ func ListTasksHandler() http.HandlerFunc {
 			var t models.Task
 			var endTime, lastResume sql.NullTime
 
-			err := rows.Scan(&t.ID, &t.Title, &t.StartTime, &endTime, &t.IsPaused,
+			err := rows.Scan(&t.ID, &t.Title, &t.Detail, &t.StartTime, &endTime, &t.IsPaused,
 				&t.PausedDuration, &t.Duration, &lastResume)
 			if err != nil {
 				utils.WriteError(w, http.StatusInternalServerError, "Scan error")
@@ -150,7 +150,7 @@ func GetRunningTasksHandler() http.HandlerFunc {
 			var t models.Task
 			var endTime, lastResume sql.NullTime
 
-			err := rows.Scan(&t.ID, &t.Title, &t.StartTime, &endTime, &t.IsPaused,
+			err := rows.Scan(&t.ID, &t.Title, &t.Detail, &t.StartTime, &endTime, &t.IsPaused,
 				&t.PausedDuration, &t.Duration, &lastResume)
 			if err != nil {
 				utils.WriteError(w, http.StatusInternalServerError, "Scan error")
@@ -177,7 +177,8 @@ func GetRunningTasksHandler() http.HandlerFunc {
 func CreateTaskHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var input struct {
-			Title string `json:"title"`
+			Title  string `json:"title"`
+			Detail string `json:"detail"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&input); err != nil || input.Title == "" {
 			utils.WriteError(w, http.StatusBadRequest, "Invalid JSON or missing title")
@@ -195,9 +196,9 @@ func CreateTaskHandler() http.HandlerFunc {
 
 		now := time.Now()
 		result, err := db.DB.Exec(`
-			INSERT INTO tasks (title, start_time, is_paused, paused_duration, duration, last_resume_time)
-			VALUES (?, ?, 0, 0, 0, ?)`,
-			input.Title, now, now,
+			INSERT INTO tasks (title, detail, start_time, is_paused, paused_duration, duration, last_resume_time)
+			VALUES (?, ?, ?, 0, 0, 0, ?)`,
+			input.Title, input.Detail, now, now,
 		)
 		if err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "Failed to create task")

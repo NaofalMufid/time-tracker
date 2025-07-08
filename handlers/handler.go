@@ -397,3 +397,65 @@ func DeleteTaskHandler() http.HandlerFunc {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
+
+func UpdateTaskHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := mux.Vars(r)["id"]
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, "Invalid task ID")
+			return
+		}
+
+		var input struct {
+			Title  *string `json:"title"`
+			Detail *string `json:"detail"`
+		}
+
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			utils.WriteError(w, http.StatusBadRequest, "Invalid JSON")
+			return
+		}
+
+		if input.Title == nil && input.Detail == nil {
+			utils.WriteError(w, http.StatusBadRequest, "No fields to update")
+			return
+		}
+
+		var task models.Task
+		err = db.DB.QueryRow("SELECT id, title, detail FROM tasks WHERE id = ?", id).Scan(&task.ID, &task.Title, &task.Detail)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				utils.WriteError(w, http.StatusNotFound, "Task not found")
+				return
+			}
+			utils.WriteError(w, http.StatusInternalServerError, "Failed to retrieve task")
+			return
+		}
+
+		query := "UPDATE tasks SET"
+		args := []interface{}{}
+
+		if input.Title != nil {
+			query += " title = ?,"
+			args = append(args, *input.Title)
+		}
+
+		if input.Detail != nil {
+			query += " detail = ?,"
+			args = append(args, *input.Detail)
+		}
+
+		query = strings.TrimSuffix(query, ",")
+		query += " WHERE id = ?"
+		args = append(args, id)
+
+		_, err = db.DB.Exec(query, args...)
+		if err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "Failed to update task")
+			return
+		}
+
+		utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "updated"})
+	}
+}

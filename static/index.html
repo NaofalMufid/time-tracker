@@ -16,109 +16,135 @@
   <div class="max-w-xl w-full">
     <h1 class="text-3xl font-bold mb-4 text-center">⏱️ Task Time Tracker</h1>
 
-    <form @submit.prevent="createTask" class="flex flex-col mb-6 space-y-2">
-      <input type="text" x-model="newTitle" placeholder="New task title" required class="flex-grow border rounded px-3 py-2"/>
-      <textarea x-model="newDetail" placeholder="Task Detail (optional)" rows="3" class="flex-grow border rounded px-3 py-2"></textarea>
-      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Start</button>
-    </form>
+    <div class="mb-6">
+      <nav class="flex bg-gray-200 rounded-lg p-1 space-x-1">
+        <button @click="activeTab = 'active'"
+                :class="{ 'bg-white text-gray-900 shadow': activeTab === 'active', 'text-gray-600 hover:bg-white/60': activeTab !== 'active' }"
+                class="w-full text-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out">
+          Active Task
+        </button>
+        <button @click="activeTab = 'history'"
+                :class="{ 'bg-white text-gray-900 shadow': activeTab === 'history', 'text-gray-600 hover:bg-white/60': activeTab !== 'history' }"
+                class="w-full text-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out">
+          History
+        </button>
+      </nav>
+    </div>
 
-    <section class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">Active Task</h2>
-      <div class="bg-white p-4 rounded-lg shadow border border-blue-200">
-        <template x-if="activeTask">
-          <div class="flex flex-col space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="font-semibold text-lg text-blue-800" x-text="activeTask.title"></span>
-              <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">Running</span>
-            </div>
-            <div class="text-sm text-gray-600">
-              Started: <span x-text="new Date(activeTask.start_time).toLocaleString()"></span><br>
-              Duration: <span x-text="liveDuration"></span>
-            </div>
-            <div class="mt-2 flex flex-wrap gap-2">
-              <button class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600" @click="pauseTask(activeTask.id)">Pause</button>
-              <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" @click="stopTask(activeTask.id)">Stop</button>
-            </div>
-          </div>
-        </template>
-        <template x-if="!activeTask">
-          <p class="text-gray-500">No active task.</p>
-        </template>
-      </div>
-    </section>
+    <div x-show="activeTab === 'active'" class="space-y-6">
+      <form @submit.prevent="createTask" class="flex flex-col space-y-2">
+        <input type="text" x-model="newTitle" placeholder="New task title" required class="flex-grow border rounded px-3 py-2"/>
+        <textarea x-model="newDetail" placeholder="Task Detail (optional)" rows="3" class="flex-grow border rounded px-3 py-2"></textarea>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Start</button>
+      </form>
 
-    <section>
-      <div class="bg-white p-4 rounded-lg shadow mb-6">
-        <h2 class="text-xl font-semibold mb-4">Filter & Sort</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label for="filterStatus" class="block text-sm font-medium text-gray-700 mb-1">Filter Status</label>
-            <select x-model="filters.status" id="filterStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="all">All</option>
-              <option value="paused">Paused</option>
-              <option value="stopped">Stopped</option>
-            </select>
-          </div>
-          <div>
-            <label for="sortBy" class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
-            <select x-model="filters.sortBy" id="sortBy" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="start_time">Start Time</option>
-              <option value="title">Title</option>
-            </select>
-          </div>
-          <div>
-            <label for="orderBy" class="block text-sm font-medium text-gray-700 mb-1">Order</label>
-            <select x-model="filters.orderBy" id="orderBy" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="desc">Descending</option>
-              <option value="asc">Ascending</option>
-            </select>
+      <section>
+        <h2 class="text-xl font-semibold mb-2">Active Task</h2>
+        <div class="bg-white p-4 rounded-lg shadow border border-blue-200">
+          <template x-if="activeTask">
+            <div class="flex flex-col space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-semibold text-lg text-blue-800" x-text="activeTask.title"></span>
+                <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">Running</span>
+              </div>
+              <div class="text-sm text-gray-600">
+                Started: <span x-text="new Date(activeTask.start_time).toLocaleString()"></span><br>
+                Duration: <span x-text="liveDuration"></span>
+              </div>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <button class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600" @click="pauseTask(activeTask.id)">Pause</button>
+                <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" @click="stopTask(activeTask.id)">Stop</button>
+              </div>
+            </div>
+          </template>
+          <template x-if="!activeTask">
+            <p class="text-gray-500">No active task.</p>
+          </template>
+        </div>
+      </section>
+    </div>
+
+    <div x-show="activeTab === 'history'" class="space-y-6">
+      <section>
+        <div class="bg-white p-4 rounded-lg shadow mb-6">
+          <h2 class="text-xl font-semibold mb-4">Filter & Sort</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label for="filterStatus" class="block text-sm font-medium text-gray-700 mb-1">Filter Status</label>
+              <select x-model="filters.status" id="filterStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="all">All</option>
+                <option value="paused">Paused</option>
+                <option value="stopped">Stopped</option>
+              </select>
+            </div>
+            <div>
+              <label for="sortBy" class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+              <select x-model="filters.sortBy" id="sortBy" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="start_time">Start Time</option>
+                <option value="title">Title</option>
+              </select>
+            </div>
+            <div>
+              <label for="orderBy" class="block text-sm font-medium text-gray-700 mb-1">Order</label>
+              <select x-model="filters.orderBy" id="orderBy" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="desc">Descending</option>
+                <option value="asc">Ascending</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section>
-      <h2 class="text-xl font-semibold mb-2">All Tasks</h2>
-      <div class="space-y-2">
-        <template x-for="task in tasks" :key="task.id">
-          <div class="p-4 rounded-lg shadow bg-white border border-gray-200 flex flex-col space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="font-semibold text-lg" x-text="task.title"></span>
-              <span class="text-xs px-2 py-1 rounded" x-text="getTaskStatus(task)" :class="getTaskStatusColor(task)"></span>
-            </div>
-            <div x-show="task.detail" class="text-sm text-gray-700 mt-1" x-text="task.detail"></div>
-            <div class="text-sm text-gray-600">
-              Started: <span x-text="new Date(task.start_time).toLocaleString()"></span><br>
-              <template x-if="task.end_time">
-                <span>Ended: <span x-text="new Date(task.end_time).toLocaleString()"></span><br></span>
-              </template>
-              Duration: <span x-text="formatDuration(task.is_paused == 1 ? task.paused_duration : task.duration)"></span>
-            </div>
-            <div class="mt-2 flex flex-wrap gap-2">
-                <template x-if="!task.end_time">
-                    <template x-if="task.is_paused">
-                        <button class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600" @click="resumeTask(task.id)">Resume</button>
-                        <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" @click="stopTask(task.id)">Stop</button>
-                    </template>
-                    <template x-if="!task.is_paused">
-                        <button class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600" @click="pauseTask(task.id)">Pause</button>
-                        <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" @click="stopTask(task.id)">Stop</button>
-                    </template>
+      <section>
+        <h2 class="text-xl font-semibold mb-2">All Tasks</h2>
+        <div class="space-y-2">
+          <template x-for="task in tasks" :key="task.id">
+            <div class="p-4 rounded-lg shadow bg-white border border-gray-200 flex flex-col space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-semibold text-lg" x-text="task.title"></span>
+                <span class="text-xs px-2 py-1 rounded" x-text="getTaskStatus(task)" :class="getTaskStatusColor(task)"></span>
+              </div>
+              <div x-data="{ expanded: false }">
+                <div x-show="task.detail" class="text-sm text-gray-700 mt-1">
+                  <span x-text="expanded ? task.detail : (task.detail.length > 100 ? task.detail.substring(0, 100) + '...' : task.detail)"></span>
+                  <button x-show="task.detail.length > 100" @click="expanded = !expanded" class="text-blue-500 hover:underline">
+                    <span x-text="expanded ? 'Read less' : 'Read more'" class="text-yellow"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="text-sm text-gray-600">
+                Started: <span x-text="new Date(task.start_time).toLocaleString()"></span><br>
+                <template x-if="task.end_time">
+                  <span>Ended: <span x-text="new Date(task.end_time).toLocaleString()"></span><br></span>
                 </template>
-                <template x-if="task.is_paused || task.end_time">
-                    <button class="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500" @click="deleteTask(task.id)">Delete</button>
-                </template>
+                Duration: <span x-text="formatDuration(task.is_paused == 1 ? task.paused_duration : task.duration)"></span>
+              </div>
+              <div class="mt-2 flex flex-wrap gap-2">
+                  <template x-if="!task.end_time">
+                      <template x-if="task.is_paused">
+                          <button class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600" @click="resumeTask(task.id)">Resume</button>
+                          <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" @click="stopTask(task.id)">Stop</button>
+                      </template>
+                      <template x-if="!task.is_paused">
+                          <button class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600" @click="pauseTask(task.id)">Pause</button>
+                          <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" @click="stopTask(task.id)">Stop</button>
+                      </template>
+                  </template>
+                  <template x-if="task.is_paused || task.end_time">
+                      <button class="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500" @click="deleteTask(task.id)">Delete</button>
+                  </template>
+              </div>
             </div>
-          </div>
-        </template>
-      </div>
-      
-      <div x-show="pagination.totalPages > 0" class="flex justify-center items-center mt-6">
-        <button @click="changePage(pagination.currentPage - 1)" :disabled="!pagination.hasPrev" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
-        <span class="px-4 py-2 text-sm text-gray-700" x-text="`Page ${pagination.currentPage} of ${pagination.totalPages}`"></span>
-        <button @click="changePage(pagination.currentPage + 1)" :disabled="!pagination.hasNext" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
-      </div>
-    </section>
+          </template>
+        </div>
+        
+        <div x-show="pagination.totalPages > 0" class="flex justify-center items-center mt-6">
+          <button @click="changePage(pagination.currentPage - 1)" :disabled="!pagination.hasPrev" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+          <span class="px-4 py-2 text-sm text-gray-700" x-text="`Page ${pagination.currentPage} of ${pagination.totalPages}`"></span>
+          <button @click="changePage(pagination.currentPage + 1)" :disabled="!pagination.hasNext" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+        </div>
+      </section>
+    </div>
   </div>
 
   <script src="/static/script.js"></script>

@@ -49,6 +49,7 @@ func main() {
 	r.HandleFunc("/tasks/{id}/resume", handlers.ResumeTaskHandler()).Methods("POST")
 	r.HandleFunc("/tasks/{id}/stop", handlers.StopTaskHandler()).Methods("POST")
 	r.HandleFunc("/tasks/{id}", handlers.DeleteTaskHandler()).Methods("DELETE")
+	r.HandleFunc("/tasks/{id}", handlers.UpdateTaskHandler()).Methods("PUT")
 	r.HandleFunc("/tasks", handlers.ListTasksHandler()).Methods("GET")
 	r.HandleFunc("/tasks/running", handlers.GetRunningTasksHandler()).Methods("GET")
 

@@ -14,6 +14,11 @@ function taskManager() {
     pageSize: 10,
     liveDuration: '00:00:00',
     activeDurationInterval: null,
+    activeTab: 'active',
+    editingTaskId: null,
+    editingTaskTitle: '',
+    editingDetailTaskId: null,
+    editingTaskDetail: '',
 
     init() {
       this.fetchTasks();
@@ -152,6 +157,54 @@ function taskManager() {
             return task.is_paused ? 'bg-yellow-100 text-yellow-900' : 'bg-green-100 text-green-900';
         }
         return 'bg-gray-100 text-gray-800';
+    },
+
+    startEdit(task, field) {
+      if (field === 'title') {
+        this.editingTaskId = task.id;
+        this.editingTaskTitle = task.title;
+        this.editingDetailTaskId = null;
+        this.editingTaskDetail = '';
+      } else if (field === 'detail') {
+        this.editingDetailTaskId = task.id;
+        this.editingTaskDetail = task.detail;
+        this.editingTaskId = null;
+        this.editingTaskTitle = '';
+      }
+    },
+
+    cancelEdit() {
+      this.editingTaskId = null;
+      this.editingTaskTitle = '';
+      this.editingDetailTaskId = null;
+      this.editingTaskDetail = '';
+    },
+
+    async updateTask(id) {
+      let payload = {};
+      if (this.editingTaskId === id) {
+        payload.title = this.editingTaskTitle;
+      } else if (this.editingDetailTaskId === id) {
+        payload.detail = this.editingTaskDetail;
+      }
+
+      try {
+        const res = await fetch(`/tasks/${id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          this.fetchTasks();
+          this.cancelEdit();
+        } else {
+          const data = await res.json();
+          alert(data.error || 'Failed to update task');
+        }
+      } catch (err) {
+        console.error('Error updating task:', err);
+      }
     }
   }
 }

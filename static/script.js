@@ -1,3 +1,10 @@
+document.addEventListener('alpine:init', () => {
+  Alpine.store('confirmModal', {
+    show: false,
+    idToDelete: null
+  });
+});
+
 function taskManager() {
   return {
     tasks: [],
@@ -15,10 +22,11 @@ function taskManager() {
     liveDuration: '00:00:00',
     activeDurationInterval: null,
     activeTab: 'active',
-    editingTaskId: null,
-    editingTaskTitle: '',
-    editingDetailTaskId: null,
-    editingTaskDetail: '',
+    editingTask: null,
+    confirmModal: {
+      show: false,
+      idToDelete: null,
+    },
 
     init() {
       this.fetchTasks();
@@ -101,7 +109,7 @@ function taskManager() {
           body: JSON.stringify({ title: this.newTitle, detail: this.newDetail })
         });
         const data = await res.json();
-        if (data.error) alert(data.error);
+        if (data.error) this.showToast(data.error, "error");
         this.newTitle = '';
         this.newDetail = '';
         this.fetchTasks();
@@ -120,7 +128,7 @@ function taskManager() {
     async resumeTask(id) {
       const res = await fetch(`/tasks/${id}/resume`, { method: 'POST' });
       const data = await res.json();
-      if (data.error) alert(data.error);
+      if (data.error) this.showToast(data.error), "error";
       this.fetchTasks();
       this.getRunningTask();
     },
@@ -132,9 +140,16 @@ function taskManager() {
     },
 
     async deleteTask(id) {
-      if (confirm('Are you sure you want to delete this task?')) {
-        await fetch(`/tasks/${id}`, { method: 'DELETE' });
+      try {
+        const res = await fetch(`/tasks/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to delete task');
+        }
         this.fetchTasks();
+        this.showToast('Task deleted successfully');
+      } catch (error) {
+        this.showToast(error.message, 'error');
       }
     },
 
@@ -159,48 +174,52 @@ function taskManager() {
         return 'bg-gray-100 text-gray-800';
     },
 
-    startEdit(task, field) {
-      if (field === 'title') {
-        this.editingTaskId = task.id;
-        this.editingTaskTitle = task.title;
-        this.editingDetailTaskId = null;
-        this.editingTaskDetail = '';
-      } else if (field === 'detail') {
-        this.editingDetailTaskId = task.id;
-        this.editingTaskDetail = task.detail;
-        this.editingTaskId = null;
-        this.editingTaskTitle = '';
-      }
+    showDeleteConfirm(id) {
+      this.confirmModal.idToDelete = id;
+      this.confirmModal.show = true;
+    },
+
+    showEditModal(task) {
+      this.editingTask = { ...task };
     },
 
     cancelEdit() {
-      this.editingTaskId = null;
-      this.editingTaskTitle = '';
-      this.editingDetailTaskId = null;
-      this.editingTaskDetail = '';
+      this.editingTask = null;
     },
 
-    async updateTask(id) {
-      let payload = {};
-      if (this.editingTaskId === id) {
-        payload.title = this.editingTaskTitle;
-      } else if (this.editingDetailTaskId === id) {
-        payload.detail = this.editingTaskDetail;
-      }
+    showToast(message, type = 'success') {
+      this.$dispatch('notify', { message, type });
+    },
+
+    showConfirm(message, callback) {
+      this.$refs.confirmModal.message = message;
+      this.$refs.confirmModal.callback = callback;
+      this.$refs.confirmModal.show = true;
+    },
+
+    async updateTask() {
+      if (!this.editingTask) return;
 
       try {
-        const res = await fetch(`/tasks/${id}`,
+        const res = await fetch(`/tasks/${this.editingTask.id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({
+            title: this.editingTask.title,
+            detail: this.editingTask.detail,
+          })
         });
         if (res.ok) {
+          const shouldRefreshActive = !this.editingTask.end_time && !this.editingTask.is_paused;
           this.fetchTasks();
+          if (shouldRefreshActive) {
+            this.getRunningTask();
+          }
           this.cancelEdit();
         } else {
           const data = await res.json();
-          alert(data.error || 'Failed to update task');
+          this.showToast(data.error || 'Failed to update task', "error");
         }
       } catch (err) {
         console.error('Error updating task:', err);

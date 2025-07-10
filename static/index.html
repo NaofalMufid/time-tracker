@@ -118,11 +118,12 @@
                 <template x-if="task.end_time">
                   <span>Ended: <span x-text="new Date(task.end_time).toLocaleString()"></span><br></span>
                 </template>
+                Duration: 
                 <template x-if="getTaskStatus(task) !== 'Running'">
-                  Duration: <span x-text="formatDuration(task.is_paused == 1 ? task.paused_duration : task.duration)"></span>
+                  <span x-text="formatDuration(task.is_paused == 1 ? task.paused_duration : task.duration)"></span>
                 </template>
                 <template x-if="getTaskStatus(task) === 'Running'">
-                  Duration: <span x-text="liveDuration"></span>
+                  <span x-text="liveDuration"></span>
                 </template>
               </div>
               <div class="mt-2 flex flex-wrap gap-2">
